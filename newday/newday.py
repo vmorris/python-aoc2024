@@ -6,6 +6,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 
 year = 2024
 
+
 @click.command()
 @click.argument("day")
 def newday(day):

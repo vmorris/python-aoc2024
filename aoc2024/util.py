@@ -1,5 +1,7 @@
 def get_input(f, type="str"):
-    if type == "nlnl":
+    if type == "raw":
+        result = open(f).read()
+    elif type == "nlnl":
         input = open(f).read()
         groups = input.rstrip().split("\n\n")
         result = [line.rstrip().split("\n") for line in groups]
