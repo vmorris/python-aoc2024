@@ -111,19 +111,35 @@ def solve_part2(grid):
                 potentials.append(Position(x, y))
     # search in the diagonals for 2 "M" and 2 "S"
     result = 0
-    DIRECTIONS = [NORTHEAST, SOUTHEAST, SOUTHWEST, NORTHWEST]
     for p in potentials:
-        m_count = 0
-        s_count = 0
-        for dir in DIRECTIONS:
-            maybe = Position(p.x + dir.x, p.y + dir.y)
-            if 0 <= maybe.x < len_x and 0 <= maybe.y < len_y:
-                if grid[maybe.y][maybe.x] == "M":
-                    m_count += 1
-                elif grid[maybe.y][maybe.x] == "S":
-                    s_count += 1
-        if m_count == 2 and s_count == 2:
+        logger.debug(f"A found at {p}.")
+        north_letters = ""
+        south_letters = ""
+        for d in [NORTHWEST, NORTHEAST]:  # check north first
+            maybe = Position(p.x + d.x, p.y + d.y)
+            if 0 <= maybe.x < len_x and 0 <= maybe.y < len_y:  # stay in bounds
+                north_letters += grid[maybe.y][maybe.x]
+        for d in [SOUTHWEST, SOUTHEAST]:  # now check south
+            maybe = Position(p.x + d.x, p.y + d.y)
+            if 0 <= maybe.x < len_x and 0 <= maybe.y < len_y:  # stay in bounds
+                south_letters += grid[maybe.y][maybe.x]
+        # compare north and south
+        logger.debug(f"north {north_letters}; south {south_letters}")
+        # if north is all M and south is all S, or vise-versa, we can count and continue early
+        if (north_letters == "MM" and south_letters == "SS") or (
+            north_letters == "SS" and south_letters == "MM"
+        ):
             result += 1
+            continue
+        sorted_north = sorted(north_letters)
+        sorted_south = sorted(south_letters)
+        if sorted_north != ["M", "S"] or sorted_south != ["M", "S"]:
+            logger.debug(f"sorted failed: north {sorted_north}; south {sorted_south}")
+            continue
+        if north_letters[::-1] == south_letters:
+            logger.debug(f"comparision failed on reverse")
+            continue
+        result += 1
     return result
 
 
