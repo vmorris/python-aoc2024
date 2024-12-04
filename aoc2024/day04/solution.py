@@ -3,11 +3,10 @@ import logging
 
 from aoc2024.util import get_input
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 Position = namedtuple("Position", ["x", "y"])
-# Direction = namedtuple("Direction", ["x", "y"])
 
 
 class Direction:
