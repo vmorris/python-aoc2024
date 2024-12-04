@@ -1,12 +1,9 @@
-from collections import namedtuple
 import logging
 
 from aoc2024.util import get_input
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-Position = namedtuple("Position", ["x", "y"])
 
 
 class Direction:
@@ -17,6 +14,21 @@ class Direction:
 
     def __repr__(self):
         return self.dirname
+
+
+class Position:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __repr__(self):
+        return f"Position({self.x},{self.y})"
+
+    def __add__(self, other: Direction):
+        if type(other) != Direction:
+            raise TypeError
+        new_position = Position(self.x + other.x, self.y + other.y)
+        return new_position
 
 
 # Cardinal direcitons for traversing the puzzle grid (X, Y)
@@ -43,16 +55,12 @@ class XM_Search:
         len_x = len(grid[0])
         # double check that we still have "XM"
         assert grid[self.X_position.y][self.X_position.x] == "X"
-        M_position = Position(
-            self.X_position.x + self.direction.x, self.X_position.y + self.direction.y
-        )
+        M_position = self.X_position + self.direction
         if M_position.x < 0 or M_position.y < 0:
             raise IndexError
         assert grid[M_position.y][M_position.x] == "M"
         # continue checking in the direction for "A"
-        A_position = Position(
-            M_position.x + self.direction.x, M_position.y + self.direction.y
-        )
+        A_position = M_position + self.direction
         if not (0 <= A_position.x < len_x) or not (0 <= A_position.y < len_y):
             logging.debug(f"{self} went out of bounds searching for A")
             return False
@@ -60,9 +68,7 @@ class XM_Search:
             logger.debug(f"{self} failed to find 'A' at {A_position}")
             return False
         # continue checking in the direction for "S"
-        S_position = Position(
-            A_position.x + self.direction.x, A_position.y + self.direction.y
-        )
+        S_position = A_position + self.direction
         if not (0 <= S_position.x < len_x) or not (0 <= S_position.y < len_y):
             logging.debug(f"{self} went out of bounds searching for S")
             return False
@@ -85,12 +91,9 @@ def solve_part1(grid):
                 X_position = Position(x, y)
                 # then search around that position for "M", saving the potentials
                 for direction in DIRECTIONS:
-                    maybe_M = Position(
-                        X_position.x + direction.x, X_position.y + direction.y
-                    )
-                    if not (0 <= maybe_M.x < len(row)) or not (
-                        0 <= maybe_M.y < len(grid)
-                    ):  # out of bounds searching for M
+                    maybe_M = X_position + direction
+                    if not (0 <= maybe_M.x < len(row) and 0 <= maybe_M.y < len(grid)):
+                        # out of bounds searching for M
                         continue
                     if grid[maybe_M.y][maybe_M.x] == "M":
                         potentials.append(
@@ -115,11 +118,11 @@ def solve_part2(grid):
         north_letters = ""
         south_letters = ""
         for d in [NORTHWEST, NORTHEAST]:  # check north first
-            maybe = Position(p.x + d.x, p.y + d.y)
+            maybe = p + d
             if 0 <= maybe.x < len_x and 0 <= maybe.y < len_y:  # stay in bounds
                 north_letters += grid[maybe.y][maybe.x]
         for d in [SOUTHWEST, SOUTHEAST]:  # now check south
-            maybe = Position(p.x + d.x, p.y + d.y)
+            maybe = p + d
             if 0 <= maybe.x < len_x and 0 <= maybe.y < len_y:  # stay in bounds
                 south_letters += grid[maybe.y][maybe.x]
         # compare north and south
