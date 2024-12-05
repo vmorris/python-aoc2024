@@ -13,6 +13,6 @@ def test_solve_part1():
 
 
 def test_solve_part2():
-    expected = None
+    expected = 123
     actual = solution.solve_part2(page_ordering_rules, updates)
     assert expected == actual

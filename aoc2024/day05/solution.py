@@ -1,5 +1,7 @@
 from collections import defaultdict
 import logging
+from networkx import DiGraph
+
 from aoc2024.util import get_input
 
 logging.basicConfig(level=logging.INFO)
@@ -46,12 +48,49 @@ def solve_part1(rules, updates):
     return result
 
 
+def build_digraph(rules: dict) -> DiGraph:
+    digraph = DiGraph()
+    for key, values in rules.items():
+        digraph.add_node(key)
+        for value in values:
+            digraph.add_node(value)
+            digraph.add_edge(key, value)
+    # from networkx import draw_circular
+    # import matplotlib.pyplot as plt
+    # draw_circular(digraph, with_labels=True)
+    # plt.show()
+    return digraph
+
+
 def solve_part2(rules, updates):
     result = 0
+    rules_graph = build_digraph(rules)
     _, invalid_updates = sort_updates(rules, updates)
     for update in invalid_updates:
-        logger.debug(f"p2: {update}")
-        # i think the strat here is to find rule violations and then just swap the positions of the left and right values from the rule
+        logger.debug(f"part 2: invalid update: {update}")
+        index = 0
+        # check each page in the update for rule violations
+        while index < len(update):
+            moved = False
+            current_page = update[index]
+            logger.debug(f"- checking page {current_page}")
+            later_pages = update[index + 1 :]
+            for predecessor in rules_graph.predecessors(current_page):
+                if predecessor in later_pages:
+
+                    logger.debug(f"  - found page out of order: {predecessor}")
+                    oldindex = update.index(predecessor)
+                    logger.debug(f"  - moving {predecessor} from {oldindex} to {index}")
+                    update.insert(index, update.pop(oldindex))
+                    # don't check any more predecessors and don't update index
+                    moved = True
+                    break
+            if not moved:
+                index += 1
+        logger.debug(f" !! fixed update: {update}")
+    for update in invalid_updates:
+        mid_index = len(update) // 2
+        result += update[mid_index]
     return result
 
 

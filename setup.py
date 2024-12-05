@@ -4,7 +4,6 @@ dependencies = [
     "wheel",
     "Jinja2",
     "Click",
-    # "anytree",
     "sortedcontainers",
     "numpy",
     "networkx",
