@@ -12,6 +12,7 @@ dependencies = [
 tests_dependencies = [
     "pytest",
     "pytest_cov",
+    "remote-pdb",
 ]
 extras = {"test": tests_dependencies}
 
