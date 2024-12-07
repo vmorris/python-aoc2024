@@ -39,6 +39,12 @@ def get_input(f, type="str"):
             result = list()
             for line in input:
                 result.append([*line])
+        if type == "dict-ints":
+            """dictionary, keys and values are list of ints"""
+            result = dict()
+            for line in input:
+                k, vals = line.split(":")
+                result[int(k)] = list(map(int, vals.split()))
     return result
 
 
