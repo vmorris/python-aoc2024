@@ -27,28 +27,35 @@ SZ = 130
 dirmap = {"^": (0, -1), ">": (1, 0), "v": (0, 1), "<": (-1, 0)}
 dirs = ("^", ">", "v", "<")
 
-visited = set()
-field = {}
+visited = set()  # keep track of all positions visited
+field = {}  # after prep, field contains the lab map
 
 
 def prep():
-    gx, gy = 0, 0
+    """
+    This builds an entirely new view of the lab without the guard's position or location and stores in "field'.
+    The guard's X and Y position is returned. This assumes that the guard will always start facing north.
+
+    """
+    guard_x, guard_y = 0, 0
     for i, line in enumerate(inp):
         for j, c in enumerate(line):
             field[(j, i)] = "#" if c == "#" else "."
             if c == "^":
-                gx, gy = j, i
+                guard_x, guard_y = j, i
 
-    return gx, gy
+    return guard_x, guard_y
 
 
 def star1():
-    # global visited
+    # global visited  # this was defined, but I don't think it is necessary... we'll see.
 
-    gx, gy = prep()
-    gc = 0
+    guard_x, guard_y = prep()
+    guard_face = "^"
 
-    visited.add((gx, gy))
+    # record the starting position
+    visited.add((guard_x, guard_y))
+
     while True:
         dt = dirmap[dirs[gc]]
         dx, dy = gx + dt[0], gy + dt[1]
