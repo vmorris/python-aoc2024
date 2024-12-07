@@ -98,7 +98,7 @@ class GuardRoute:
     def step(self):
         # mark position visited
         self.lab[self.position.y][self.position.x] = "X"
-        # record our current position in the path for loop lookup
+        # record our current position and facing direction in the path for loop lookup
         self.path.append(f"{self.position.x},{self.position.y},{self.direction}")
         # look ahead
         next_step = self.position + self.direction
@@ -106,7 +106,7 @@ class GuardRoute:
         # detect obstruction
         if self.lab[next_step.y][next_step.x] in self.obstruction:
             # turn right
-            match self.direction.dirname:
+            match next_direction.dirname:
                 case "^":
                     next_direction = DIRECTIONS.get("EAST")
                 case ">":
@@ -115,10 +115,28 @@ class GuardRoute:
                     next_direction = DIRECTIONS.get("WEST")
                 case "<":
                     next_direction = DIRECTIONS.get("NORTH")
-        # detect edge of map
+        # look ahead
         next_step = self.position + next_direction
-        if not (
-            0 <= next_step.x < len(self.lab[0]) and 0 <= next_step.y <= len(self.lab)
+        # detect 2nd obstruction
+        if self.lab[next_step.y][next_step.x] in self.obstruction:
+            # turn right
+            match next_direction.dirname:
+                case "^":
+                    next_direction = DIRECTIONS.get("EAST")
+                case ">":
+                    next_direction = DIRECTIONS.get("SOUTH")
+                case "v":
+                    next_direction = DIRECTIONS.get("WEST")
+                case "<":
+                    next_direction = DIRECTIONS.get("NORTH")
+        # look ahead
+        next_step = self.position + next_direction
+        # detect edge of map
+        if (
+            next_step.x < 0
+            or next_step.x > len(self.lab[0])
+            or next_step.y < 0
+            or next_step.y > len(self.lab)
         ):
             raise IndexError
         # check the path history for previous visits
