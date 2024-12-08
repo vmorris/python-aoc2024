@@ -69,9 +69,9 @@ def solve_part1(entries):
         leaf_id = [x for x, y in tree.nodes(data=True) if y["value"] == expected][0]
         leaf_node = tree.nodes[leaf_id]
         predecessors = dfs_predecessors(tree, leaf_id)
-        import pdb
+        # import pdb
 
-        pdb.set_trace()
+        # pdb.set_trace()
     return result
 
 
