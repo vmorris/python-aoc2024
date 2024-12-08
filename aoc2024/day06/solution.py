@@ -1,6 +1,7 @@
 import copy
 import logging
 from multiprocessing import Pool
+import pprint
 from aoc2024.util import get_input
 
 logging.basicConfig(level=logging.ERROR)
@@ -96,6 +97,9 @@ class GuardRoute:
         self.lab[position.y][position.x] = "O"
 
     def step(self):
+        logger.info(
+            f"About to take step, pos={self.position}, direction={self.direction}"
+        )
         # mark position visited
         self.lab[self.position.y][self.position.x] = "X"
         # record our current position and facing direction in the path for loop lookup
@@ -103,34 +107,6 @@ class GuardRoute:
         # look ahead
         next_step = self.position + self.direction
         next_direction = self.direction
-        # detect obstruction
-        if self.lab[next_step.y][next_step.x] in self.obstruction:
-            # turn right
-            match next_direction.dirname:
-                case "^":
-                    next_direction = DIRECTIONS.get("EAST")
-                case ">":
-                    next_direction = DIRECTIONS.get("SOUTH")
-                case "v":
-                    next_direction = DIRECTIONS.get("WEST")
-                case "<":
-                    next_direction = DIRECTIONS.get("NORTH")
-        # look ahead
-        next_step = self.position + next_direction
-        # detect 2nd obstruction
-        if self.lab[next_step.y][next_step.x] in self.obstruction:
-            # turn right
-            match next_direction.dirname:
-                case "^":
-                    next_direction = DIRECTIONS.get("EAST")
-                case ">":
-                    next_direction = DIRECTIONS.get("SOUTH")
-                case "v":
-                    next_direction = DIRECTIONS.get("WEST")
-                case "<":
-                    next_direction = DIRECTIONS.get("NORTH")
-        # look ahead
-        next_step = self.position + next_direction
         # detect edge of map
         if (
             next_step.x < 0
@@ -139,12 +115,41 @@ class GuardRoute:
             or next_step.y > len(self.lab)
         ):
             raise IndexError
+        # detect obstruction
+        while self.lab[next_step.y][next_step.x] in self.obstruction:
+            logger.info(f"obstruction at {next_step}, turning right")
+            match next_direction.dirname:
+                case "^":
+                    next_direction = DIRECTIONS.get("EAST")
+                case ">":
+                    next_direction = DIRECTIONS.get("SOUTH")
+                case "v":
+                    next_direction = DIRECTIONS.get("WEST")
+                case "<":
+                    next_direction = DIRECTIONS.get("NORTH")
+            next_step = self.position + next_direction
+        """
+        # look ahead
+        #next_step = self.position + next_direction
+        # detect 2nd obstruction
+        #if self.lab[next_step.y][next_step.x] in self.obstruction:
+            logger.info(f"obstruction at {next_step}, turning right")
+            match next_direction.dirname:
+                case "^":
+                    next_direction = DIRECTIONS.get("EAST")
+                case ">":
+                    next_direction = DIRECTIONS.get("SOUTH")
+                case "v":
+                    next_direction = DIRECTIONS.get("WEST")
+                case "<":
+                    next_direction = DIRECTIONS.get("NORTH")
+        """
+        logger.info("\n" + pprint.pformat(self.lab))
         # check the path history for previous visits
         lookup = f"{next_step.x},{next_step.y},{next_direction}"
         if lookup in self.path:
             # we've already been there
             return "looped"
-
         else:
             # take the step
             self.position = next_step
@@ -168,10 +173,14 @@ def solve_part1(entries):
 
 
 def test_for_loop(route: GuardRoute):
+    logger.info(f"part 2 testing obstruction: ")
     try:
         while True:
             if route.step() == "looped":
-                return True
+                logger.info(
+                    f"\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nLOOPED when testing {route.new_obstruction} at {route.position}"
+                )
+                return route
     except IndexError:
         return False
 
@@ -191,6 +200,7 @@ def solve_part2(entries):
     for location in test_path:
         x, y, _ = location.split(",")
         obstructions.add(Position(x, y))
+    logger.info(obstructions)
     test_routes = list()
     for obs in obstructions:
         test_map = copy.deepcopy(entries)
@@ -200,7 +210,7 @@ def solve_part2(entries):
     # test for loops with new obstructions along the path
     with Pool(10) as p:
         results = p.map(test_for_loop, test_routes)
-    return sum([x for x in results])
+    return list(map(type, results)).count(GuardRoute)
 
 
 if __name__ == "__main__":  # pragma: no cover

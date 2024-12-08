@@ -1,41 +1,36 @@
 import copy
 import operator
 import logging
-from aoc2024.util import get_input
+import random
 from networkx import (
     Graph,
     spring_layout,
     draw,
     get_edge_attributes,
+    get_node_attributes,
     draw_networkx_edge_labels,
 )
-
-# import networkx
 import matplotlib.pyplot as plt
+
+from aoc2024.util import get_input
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def build_tree(tree: Graph, parent, operands, depth):
+def build_tree(tree: Graph, parent, operands):
     logger.info(f"build_tree: parent:{parent.get("value")}, operands: {operands}")
     if not operands:
-        return tree
+        return
     operand = operands.pop(0)
-    children = list()
     parent_value = parent.get("value")
     for op in [(operator.add, "+"), (operator.mul, "*")]:
-        i = 0
+        child_node_id = random.randint(1, 10000)
         child_value = op[0](parent_value, operand)
-        tree.add_node(depth + i, value=child_value)
-        # tree.add_edge(parent_value, child_value, operation=f"{op[1]} {operand}")
-        children.append(child_value)
-        i += 1
-    for c in children:
-        logger.info(
-            f"- recursive call: old_parent:{parent.get("value")}, new_parent:{tree.nodes[c].get("value")} "
-        )
-        build_tree(tree, tree.nodes[c], copy.copy(operands), depth + 10)
+        logger.info(f"new child node: id:{child_node_id}, value:{child_value}")
+        tree.add_node(child_node_id, id=child_node_id, value=child_value)
+        tree.add_edge(parent.get("id"), child_node_id, operation=f"{op[1]} {operand}")
+        build_tree(tree, tree.nodes[child_node_id], copy.copy(operands))
 
 
 def solve_part1(entries):
@@ -44,17 +39,25 @@ def solve_part1(entries):
         logger.debug(f"{expected}: {operands}")
         tree = Graph()
         root_val = operands.pop(0)
-        tree.add_node(0, value=root_val)
-        build_tree(tree=tree, parent=tree.nodes[root_val], operands=operands, depth=1)
+        node_id = 0
+        tree.add_node(node_id, id=node_id, value=root_val)
+        build_tree(tree=tree, parent=tree.nodes[node_id], operands=operands)
         pos = spring_layout(tree, seed=42)
-        # node_lables = networkx.get_node_attributes(tree, "operand")
+        node_lables = get_node_attributes(tree, "value")
+        node_color_map = list()
+        for node in tree:
+            if node == 0:
+                node_color_map.append("red")
+            else:
+                node_color_map.append("skyblue")
         edge_labels = get_edge_attributes(tree, "operation")
         draw(
             tree,
             pos,
             with_labels=True,
+            labels=node_lables,
             node_size=700,
-            node_color="skyblue",
+            node_color=node_color_map,
             font_size=12,
         )
         draw_networkx_edge_labels(tree, pos, edge_labels=edge_labels)
