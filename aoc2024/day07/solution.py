@@ -4,6 +4,7 @@ import logging
 import random
 from networkx import (
     Graph,
+    dfs_predecessors,
     spring_layout,
     draw,
     get_edge_attributes,
@@ -42,6 +43,7 @@ def solve_part1(entries):
         node_id = 0
         tree.add_node(node_id, id=node_id, value=root_val)
         build_tree(tree=tree, parent=tree.nodes[node_id], operands=operands)
+        """
         pos = spring_layout(tree, seed=42)
         node_lables = get_node_attributes(tree, "value")
         node_color_map = list()
@@ -62,6 +64,14 @@ def solve_part1(entries):
         )
         draw_networkx_edge_labels(tree, pos, edge_labels=edge_labels)
         plt.show()
+        """
+        # find the node with the expected value
+        leaf_id = [x for x, y in tree.nodes(data=True) if y["value"] == expected][0]
+        leaf_node = tree.nodes[leaf_id]
+        predecessors = dfs_predecessors(tree, leaf_id)
+        import pdb
+
+        pdb.set_trace()
     return result
 
 
